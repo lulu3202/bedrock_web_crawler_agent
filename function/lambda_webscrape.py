@@ -124,33 +124,52 @@ def parse_html_content(html_content):
 
 
 def lambda_handler(event, context):
+    # Initialize default success status code
     response_code = 200
-    action_group = event['actionGroup']
-    api_path = event['apiPath']
+    # Extract routing information from the incoming event
+    action_group = event['actionGroup']    # Identifies the service group (e.g., 'webscrape')
+    api_path = event['apiPath']           # The endpoint being called (e.g., '/search')
 
+    # Log the complete incoming event for debugging
     print("THE EVENT: ", event)
 
+    # Route the request based on API path
     if api_path == '/search':
+        # Handle web scraping request by calling handle_search function
         result = handle_search(event)
     else:
+        # If path not recognized, set 404 error and create error message
         response_code = 404
         result = f"Unrecognized api path: {action_group}::{api_path}"
 
+    # Format the result in the required response_body structure
+    # This wraps the result in a standardized JSON format
     response_body = {
-        'application/json': {
-            'body': result
+        'application/json': {             # Specifies content type
+            'body': result                # Contains the actual data/result
         }
     }
 
+    # Create the action_response with full context
+    # This includes metadata about the request and response
     action_response = {
-        'actionGroup': event['actionGroup'],
-        'apiPath': event['apiPath'],
-        'httpMethod': event['httpMethod'],
-        'httpStatusCode': response_code,
-        'responseBody': response_body
+        'actionGroup': event['actionGroup'],    # Service identifier
+        'apiPath': event['apiPath'],           # Endpoint called
+        'httpMethod': event['httpMethod'],      # HTTP method used (POST/GET)
+        'httpStatusCode': response_code,        # Success/error status
+        'responseBody': response_body           # The wrapped result
     }
 
-    api_response = {'messageVersion': '1.0', 'response': action_response}
+    # Create the final api_response
+    # This is the standardized outer wrapper required by AWS services
+    api_response = {
+        'messageVersion': '1.0',               # API version for compatibility
+        'response': action_response            # Complete response with metadata
+    }
+
+    # Log response details for debugging/monitoring
     print("action_response: ", action_response)
     print("response_body: ", response_body)
+
+    # Return the complete response to AWS Lambda
     return api_response

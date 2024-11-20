@@ -1,22 +1,112 @@
+# Amazon Bedrock Agent to Web scrape
 
-# Amazon Bedrock Agent to Webscrape
+## About
 
-This is an implementation of https://github.com/build-on-aws/bedrock-agents-webscraper?tab=readme-ov-file#step-1-aws-lambda-function-configuration
+A beginner friendly project showcasing Bedrock agent's capability to perform web scraping based on build-on-AWS github repo. 
 
 ## Table of Contents
-1. [Introduction](#introduction)
-2. [Prerequisites](#prerequisites)
-3. [Library dependencies](#library-dependencies)
-4. [Diagram](#diagram)
-5. [Grant Model Access](#grant-model-access)
-6. [Deploy Resources via AWS CloudFormation for the Amazon Bedrock Agent](#deploy-resources-via-aws-cloudformation-for-the-amazon-bedrock-agent)
-7. [Step-by-step Setup for the Amazon Bedrock Agent](#step-by-step-setup-for-the-amazon-bedrock-agent)
-   - [Step 1: AWS Lambda Function Configuration](#step-1-aws-lambda-function-configuration)
-   - [Step 2: Create & Attach an AWS Lambda Layer](#step-2-create--attach-an-aws-lambda-layer)
-   - [Step 3: Setup Bedrock Agent and Action Group](#step-3-setup-bedrock-agent-and-action-group)
-   - [Step 4: Create an Alias](#step-4-create-an-alias)
-8. [Step 5: Testing the Setup](#step-5-testing-the-setup)
-   - [Testing the Bedrock Agent](#testing-the-bedrock-agent)
-9. [Step 6: Setup and Run Streamlit App on EC2 (Optional)](#step-6-setup-and-run-streamlit-app-on-ec2-optional)
-10. [Cleanup](#cleanup)
+#### 1 - Introduction
+In this project, we will set up an Amazon Bedrock agent with an action group that will enable the agent to web scrape a specific URL provided by the user. 
+This README will guide you through the step-by-step process of setting up the Amazon Bedrock agent manually using the AWS Console.
+
+I was inspired by this tutorial on from build-on-AWS GitHub repo: [https://github.com/build-on-aws/bedrock-agents-webscraper?tab=readme-ov-file#step-1-aws-lambda-function-configuration](https://github.com/build-on-aws/bedrock-agents-webscraper?tab=readme-ov-file#step-1-aws-lambda-function-configuration)
+#### 2 -  Prerequisites
+
+Grant Model Access to **Anthropic: Claude 3.5 Sonnet** model.
+#### 3 -  Amazon Bedrock Agent Configuration 
+
+Step 1: AWS Lambda Function Configuration - Create a lambda function in language of your choice for the Bedrock agent's action group called 'bedrock-agent-webscrape'. To set up the webscrape Lambda function:
+	    - Copy paste code -  takes the url from the event passed in from the bedrock agent, then uses the **urllib.request** library to call, then scrape the webpage. The **beatifulsoup** library is used to clean up the scraped data. The scraped data is saved to the `/tmp` directory of the Lambda function, then passed into the response back to the agent. Review the code, then **Deploy** the Lambda before moving to the next step.
+	    - apply a resource policy to the Lambda to grant Bedrock agent access. To do this, we will switch the top tab from **code** to **configuration** and the side tab to **Permissions**. Then, scroll to the **Resource-based policy statements** section and click the **Add permissions** button.
+	    - adjust the configuration on the Lambda so that it has enough time, and CPU to handle the request. Navigate back to the Lambda function screen, go to the Configurations tab, then General configuration and select Edit.
+
+Step 2: Create & Attach an AWS Lambda Layer
+	    - For this step you will need, .zip file of dependencies for the Lambda function that are not natively provided (such as ) **urllib.request** and **beautiful soup(not native)** libraries for internet searching and web scraping. The dependencies are already packaged, and can be download from [here](https://github.com/build-on-aws/bedrock-agents-webscraper/raw/main/lambda-layer/layer-python-requests-googlesearch-beatifulsoup.zip) - referenced from build-on-AWS github repo
+	    - Name your lambda layer `googlesearch_requests_layer`. Select **Upload a .zip file** and choose the .zip file of dependencies. Choose **x86_64** for your Compatible architectures, and Python 3.12 for your runtime
+	    - - Navigate back to Lambda function `bedrock-agent-webscrape`, with **Code** tab selected. Scroll to the Layers section and select **Add a Layer**
+	    - You are now done creating and adding the dependencies needed via Lambda layer for your webscrape function.
+
+Step 3: Setup Bedrock Agent and Action Group
+	    - Navigate to the Bedrock console. Go to the toggle on the left, and under **Builder tools** select _**Agents**_, then _**Create Agent**_. Provide an agent name, like `athena-agent` then _**Create**_.
+	    - For the model, select **Anthropic Claude 3.5 Sonnet**. Next, provide the following instruction for the agent: *You are a research analyst that webscrapes the internet when provided a {question}. You use a webscraper to retrieve the content of individual webpages for review. Some websites will block the webscraper, you should try alternative sources. If you can't determine a relatable response based on the request provided, answer false. Your output should be a JSON document that includes the URL name, a yes/no answer, and a summary of your explanation. If your output is an error, you should also respond with a JSON document that includes the error.
+	    - Set up action group: - Next, we will add an action group. Scroll down to `Action groups` then select _**Add**_.
+    
+Call the action group `webscrape`. In the `Action group type` section, select _**Define with API schemas**_. For `Action group invocations`, set to _**Select an existing Lambda function**_. For the Lambda function, select `bedrock-agent-webscrape`.
+    
+For the `Action group Schema`, we will choose _**Define with in-line OpenAPI schema editor**_. Replace the default schema in the **In-line OpenAPI schema** editor with the schema provided below. You can also retrieve the schema from the repo [here](https://github.com/build-on-aws/bedrock-agents-webscraper/blob/main/schema/webscrape-schema.json). After, select _**Add**_.(This API schema is needed so that the bedrock agent knows the format structure and parameters needed for the action group to interact with the Lambda function.)
+				
+Click **Create** and **Save and exit**. You are now done setting up the webscrape action group.
+			
+Step 4: Create an Alias
+	    - At the top, select **Save**, then **Prepare**. After, select **Save and exit**. Then, scroll down to the **Alias** section and select _**Create**_. Choose a name of your liking, then create the alias. Make sure to copy and save your **AliasID**. Also, scroll to the top and save the **Agent ID** located in the **Agent overview** section.
+ 
+#### 4 - Test the bedrock agent set up 
+Use  Console to test out webscaping functionality 
+ ![[Pasted image 20241120172957.png]]
+#### 5 - Setup and Run Streamlit App on EC2 
+
+1. **Obtain CF template to launch the streamlit app**: Download the Cloudformation template from [here](https://github.com/build-on-aws/bedrock-agents-streamlit/blob/main/ec2-streamlit-template.yaml). This template will be used to deploy an EC2 instance that has the Streamlit code to run the UI.
+    
+2. **Deploy template via Cloudformation**:
+    
+    - In your mangement console, search, then go to the AWS CloudFormation service.
+    - Create a stack with new resources (standard).
+
+ Next, Provide a stack name like _**ec2-streamlit**_. Keep the instance type on the default of t3.small, then go to Next
+ 
+3. **Edit the app to update agent IDs**:
+
+- Navigate to the EC2 instance management console. Under instances, you should see `EC2-Streamlit-App`. Select the checkbox next to it, then connect to it via `EC2 Instance Connect`.
+
+- Next, use the following command to edit the invoke_agent.py file:
+    
+    ```shell
+    sudo vi app/streamlit_app/invoke_agent.py
+    ```
+    
+- Press _**i**_ to go into edit mode. Then, update the _**AGENT ID**_ and _**Agent ALIAS ID**_ values.
+- After updating the IDs, press`Esc`, then save the file changes with the following command:
+        
+        ```
+        :wq!
+        ```
+
+    - Now, start the streamlit app by running the following command:
+        
+        ```shell
+        streamlit run app/streamlit_app/app.py
+        ```
+        
+    - You should see an external URL. Copy & paste the URL into a web browser to start the streamlit application.
+![[Pasted image 20241120172833.png]]
+#### 6 - Cleanup
+
+After completing the setup and testing of the Bedrock agent, follow these steps to clean up your AWS environment and avoid unnecessary charges:
+
+1. Delete S3 Buckets:
+
+- Navigate to the S3 console.
+- Select the buckets "artifacts-bedrock-agent-webscrape-alias". Make sure that this bucket is empty by deleting the files.
+- Choose 'Delete' and confirm by entering the bucket name.
+
+2. Remove the Lambda Functions and Layers:
+
+- Go to the Lambda console.
+- Select the "bedrock-agent-internet-search" function.
+- Click 'Delete' and confirm the action. Do the same for the webscraper function
+- Be sure to navigate to the layers tab in the Lambda console, and delete "googlesearch_requests_layer"
+
+3. Delete Bedrock Agent:
+
+- In the Bedrock console, navigate to 'Agents'.
+- Select the created agent, then choose 'Delete'.
+
+ 4. Delete the EC2 instance 
+### Resources
+
+https://github.com/build-on-aws/bedrock-agents-webscraper?tab=readme-ov-file#step-6-setup-and-run-streamlit-app-on-ec2-optional
+
+### License
+
+ [MIT-0 license](https://github.com/lulu3202/bedrock_web_crawler_agent#MIT-0-1-ov-file)
 

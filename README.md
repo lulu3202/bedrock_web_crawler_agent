@@ -20,6 +20,16 @@ Grant Model Access to **Anthropic: Claude 3.5 Sonnet** model.
 	    - apply a resource policy to the Lambda to grant Bedrock agent access. To do this, we will switch the top tab from **code** to **configuration** and the side tab to **Permissions**. Then, scroll to the **Resource-based policy statements** section and click the **Add permissions** button.
 	    - adjust the configuration on the Lambda so that it has enough time, and CPU to handle the request. Navigate back to the Lambda function screen, go to the Configurations tab, then General configuration and select Edit.
 
+  High-Level Flow Summary:
+
+- Entry Point (lambda_handler) : Receives event and context, Routes based on API path, Formats and returns response
+
+- Request Processing (handle_search) : Extracts URL from parameters, Validates and formats URL, Manages content retrieval and storage
+
+- Web Scraping (get_page_content) : Fetches webpage content, Parses HTML, Extracts text content
+
+- Storage Management : empty_tmp_folder(): Cleans temporary storage and save_to_tmp(): Saves scraped content
+
 - Step 2: Create & Attach an AWS Lambda Layer
 	    - For this step you will need, .zip file of dependencies for the Lambda function that are not natively provided (such as) **urllib.request** and **beautiful soup(not native)** libraries for web scraping. The dependencies are already packaged, and can be download from [here](https://github.com/build-on-aws/bedrock-agents-webscraper/raw/main/lambda-layer/layer-python-requests-googlesearch-beatifulsoup.zip) - referenced from build-on-AWS github repo
 	    - Name your lambda layer `googlesearch_requests_layer`. Select **Upload a .zip file** and choose the .zip file of dependencies. Choose **x86_64** for your Compatible architectures, and Python 3.12 for your runtime

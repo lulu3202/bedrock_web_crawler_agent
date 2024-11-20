@@ -85,6 +85,14 @@ Use  Console to test out webscaping functionality
 
 ![image](https://github.com/user-attachments/assets/ddeaf250-2999-4f73-b061-da840e24acd0)
 
+App.py code file will help with:
+
+- A. Streamlit App Setup: Configures the app layout and interactive elements like text input, buttons, and a sidebar.
+- B. Image Handling: Processes images (e.g., human and robot icons) into circular shapes for better UI presentation.
+- C. Session State Management: Maintains a session history for questions and answers using st.session_state.
+- D. Agent Integration: Sends user queries to an external lambda_handler function for processing and handles the response.
+- E. Display History: Dynamically generates a conversation-like history display, associating user queries with responses.
+- F. Example Prompts: Provides users with pre-defined prompts to test the scraping functionality.
 
 #### 6 - Cleanup
 
@@ -112,6 +120,10 @@ After completing the setup and testing of the Bedrock agent, follow these steps 
 ### Resources
 
 https://github.com/build-on-aws/bedrock-agents-webscraper?tab=readme-ov-file#step-6-setup-and-run-streamlit-app-on-ec2-optional
+
+#### 7 - Approximate Cost Estimation 
+
+Ranges between 0.25 cents to 1 dollar (provided you delete resources and perform clean up activities after your session)
 
 ### License
 

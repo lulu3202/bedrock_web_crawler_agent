@@ -15,32 +15,32 @@ I was inspired by this tutorial on from build-on-AWS GitHub repo: [https://gith
 Grant Model Access to **Anthropic: Claude 3.5 Sonnet** model.
 #### 3 -  Amazon Bedrock Agent Configuration 
 
-Step 1: AWS Lambda Function Configuration - Create a lambda function in language of your choice for the Bedrock agent's action group called 'bedrock-agent-webscrape'. To set up the webscrape Lambda function:
+- Step 1: AWS Lambda Function Configuration - Create a lambda function in language of your choice for the Bedrock agent's action group called 'bedrock-agent-webscrape'. To set up the webscrape Lambda function:
 	    - Copy paste code -  takes the url from the event passed in from the bedrock agent, then uses the **urllib.request** library to call, then scrape the webpage. The **beatifulsoup** library is used to clean up the scraped data. The scraped data is saved to the `/tmp` directory of the Lambda function, then passed into the response back to the agent. Review the code, then **Deploy** the Lambda before moving to the next step.
 	    - apply a resource policy to the Lambda to grant Bedrock agent access. To do this, we will switch the top tab from **code** to **configuration** and the side tab to **Permissions**. Then, scroll to the **Resource-based policy statements** section and click the **Add permissions** button.
 	    - adjust the configuration on the Lambda so that it has enough time, and CPU to handle the request. Navigate back to the Lambda function screen, go to the Configurations tab, then General configuration and select Edit.
 
-Step 2: Create & Attach an AWS Lambda Layer
+- Step 2: Create & Attach an AWS Lambda Layer
 	    - For this step you will need, .zip file of dependencies for the Lambda function that are not natively provided (such as) **urllib.request** and **beautiful soup(not native)** libraries for web scraping. The dependencies are already packaged, and can be download from [here](https://github.com/build-on-aws/bedrock-agents-webscraper/raw/main/lambda-layer/layer-python-requests-googlesearch-beatifulsoup.zip) - referenced from build-on-AWS github repo
 	    - Name your lambda layer `googlesearch_requests_layer`. Select **Upload a .zip file** and choose the .zip file of dependencies. Choose **x86_64** for your Compatible architectures, and Python 3.12 for your runtime
 	    - Navigate back to Lambda function `bedrock-agent-webscrape`, with **Code** tab selected. Scroll to the Layers section and select **Add a Layer**
 	    - You are now done creating and adding the dependencies needed via Lambda layer for your webscrape function.
 
-Step 3: Setup Bedrock Agent and Action Group
+- Step 3: Setup Bedrock Agent and Action Group
 
-Step 3A - To set up Bedrock Agent 
+	- Step 3A - To set up Bedrock Agent 
 	    - Navigate to the Bedrock console. Go to the toggle on the left, and under **Builder tools** select _**Agents**_, then _**Create Agent**_. Provide an agent name, like `athena-agent` then _**Create**_.
 	    - For the model, select **Anthropic Claude 3.5 Sonnet**. Next, provide the following instruction for the agent: You are a research analyst that webscrapes the internet when provided a {question}. You use a webscraper to retrieve the content of individual webpages for review. Some websites will block the webscraper, you should try alternative sources. If you can't determine a relatable response based on the request provided, answer false. Your output should be a JSON document that includes the URL name, a yes/no answer, and a summary of your explanation. If your output is an error, you should also respond with a JSON document that includes the error.
 	    - Set up action group: - Next, we will add an action group. Scroll down to `Action groups` then select _**Add**_.
 
-Step 3B - To set up Bedrock Action Group     
+	- Step 3B - To set up Bedrock Action Group     
 Call the action group `webscrape`. In the `Action group type` section, select _**Define with API schemas**_. For `Action group invocations`, set to _**Select an existing Lambda function**_. For the Lambda function, select `bedrock-agent-webscrape`.
     
 For the `Action group Schema`, we will choose _**Define with in-line OpenAPI schema editor**_. Replace the default schema in the **In-line OpenAPI schema** editor with the schema provided below. You can also retrieve the schema from the repo [here](https://github.com/build-on-aws/bedrock-agents-webscraper/blob/main/schema/webscrape-schema.json). After, select _**Add**_.(This API schema is needed so that the bedrock agent knows the format structure and parameters needed for the action group to interact with the Lambda function.)
 				
 Click **Create** and **Save and exit**. You are now done setting up the webscrape action group.
 			
-Step 4: Create an Alias
+- Step 4: Create an Alias
 	    - At the top, select **Save**, then **Prepare**. After, select **Save and exit**. Then, scroll down to the **Alias** section and select _**Create**_. Choose a name of your liking, then create the alias. Make sure to copy and save your **AliasID**. Also, scroll to the top and save the **Agent ID** located in the **Agent overview** section.
  
 #### 4 - Test the bedrock agent set up 

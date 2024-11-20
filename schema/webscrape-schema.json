@@ -1,44 +1,41 @@
 {
-  "openapi": "3.0.0",
-  "info": {
-    "title": "Webscrape API", 
+  "openapi": "3.0.0",    // Specifies OpenAPI version being used
+  "info": {              // API metadata
+    "title": "Webscrape API",
     "description": "An API that will take in a URL, then scrape and store the content from the URL in an S3 bucket.",
-    "version": "1.0.0"
+    "version": "1.0.0"   // Your API version
   },
   "paths": {
-    "/search": {
-      "post": {
-        "description": "content scraping endpoint",
-        "parameters": [
-          {
-            "name": "inputURL",
-            "in": "query",
-            "description": "URL to scrape content from",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "upload_result": {
-                      "type": "string",
-                      "description": "Result of uploading content to S3"
-                    }
-                  }
-                }
+      "/search": {         // Endpoint path
+        "post": {          // HTTP method
+          "description": "content scraping endpoint",
+          "parameters": [  // Input parameters
+            {
+              "name": "inputURL",
+              "in": "query",        // Parameter location
+              "description": "URL to scrape content from",
+              "required": true,     // URL is mandatory
+              "schema": {
+                "type": "string"    // Parameter type
               }
             }
-          }
-        }
-      }
-    }
-  }
-}
+          ],
+         "responses": {
+             "200": {            // Success status code
+                 "description": "Successful response",
+                 "content": {
+                     "application/json": {  // Response format
+                         "schema": {
+                             "type": "object",
+                             "properties": {
+                                 "upload_result": {
+                                     "type": "string",
+                                     "description": "Result of uploading content to S3"
+                                 }
+                             }
+                         }
+                     }
+                 }
+             }
+         }
+         

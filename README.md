@@ -47,6 +47,24 @@ Grant Model Access to **Anthropic: Claude 3.5 Sonnet** model.
 Call the action group `webscrape`. In the `Action group type` section, select _**Define with API schemas**_. For `Action group invocations`, set to _**Select an existing Lambda function**_. For the Lambda function, select `bedrock-agent-webscrape`.
     
 For the `Action group Schema`, we will choose _**Define with in-line OpenAPI schema editor**_. Replace the default schema in the **In-line OpenAPI schema** editor with the schema provided below. You can also retrieve the schema from the repo [here](https://github.com/build-on-aws/bedrock-agents-webscraper/blob/main/schema/webscrape-schema.json). After, select _**Add**_.(This API schema is needed so that the bedrock agent knows the format structure and parameters needed for the action group to interact with the Lambda function.)
+
+**This schema (webscrape-schema.json) is needed for Amazon Bedrock Agents and is used to define how your API should work**
+
+User Query → Bedrock Agent → Schema Check → Lambda Function → Response
+
+1. User: "Scrape content from example.com"
+2. Agent (using schema): 
+   - Identifies intent
+   - Validates URL
+   - Calls correct endpoint (/search)
+3. Lambda: 
+   - Receives validated request
+   - Returns response matching schema
+
+Think of it as:
+	- JSON WEBSCRAPE Schema = Contract
+	- Agent = Contract enforcer
+	- Lambda = Contract implementer
 				
 Click **Create** and **Save and exit**. You are now done setting up the webscrape action group.
 			
